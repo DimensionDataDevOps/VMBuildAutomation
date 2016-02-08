@@ -15,4 +15,4 @@ License
 
 Dimension Data CLI is licensed under the Apache 2.0 license. For more information, please see LICENSE_ file.
 
-.. _LICENSE: https://github.com/DimensionDataDevOps/VMBuildCheckist/master/blob/trunk/LICENSE
+.. _LICENSE: https://github.com/DimensionDataDevOps/VMBuildCheckist/blob/master/LICENSE
