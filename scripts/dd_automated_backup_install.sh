@@ -38,8 +38,6 @@ esac
 shift # past argument or value
 done
 
-REDHAT_PYTHON34_ENABLE="/opt/rh/rh-python34/enable"
-
 get_didata_script(){
     didata=$(which didata)
 }
@@ -88,7 +86,7 @@ install_dependencies(){
     fi
     install_pip
     pip install git+https://github.com/jadunham1/libcloud.git@feature/backups_fixing --upgrade
-    pip install git+https://github.com/DimensionDataDevOps/didata_cli.git@feature/initial_build --upgrade
+    pip install git+https://github.com/DimensionDataDevOps/didata_cli.git@develop --upgrade
 }
 
 add_backup_client(){
