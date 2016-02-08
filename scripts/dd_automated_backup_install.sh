@@ -167,6 +167,7 @@ enable_backups(){
 }
 
 install_client(){
+    date
     if [[ ! -e '/opt/simpana/RestoreApp/restoreClient.pl' ]]; then
         echo "Installing backup client"
         get_download_url
@@ -181,6 +182,7 @@ install_client(){
     else
         echo "Backup client already installed, skipping..."
     fi
+    date
 }
 
 check_backup(){
@@ -239,6 +241,7 @@ check_backup(){
 
 do_full_backup(){
     COUNTER=0
+    date
     while [  $COUNTER -lt 10 ]; do
         echo -n "Starting full backup... this may take some time... "
         (/opt/simpana/RestoreApp/restoreClient.pl --full-backup-now > /tmp/restore_client_output) &
@@ -261,6 +264,7 @@ do_full_backup(){
         echo "$output"
         exit 1
     fi
+    date
 }
 
 spinner(){
