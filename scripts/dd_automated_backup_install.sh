@@ -30,6 +30,10 @@ case $key in
     schedulepol="$2"
     shift # past argument
     ;;
+    -l|--serviceplan)
+    serviceplan="$2"
+    shift # past argument
+    ;;
     -u|--username)
     username="$2"
     shift # past argument
@@ -154,7 +158,7 @@ get_download_url(){
 enable_backups(){
     ipv6_addr=$(ip -6 addr | grep global | awk {'print $2'} | cut -d\/ -f1)
     echo "IPv6 Address $ipv6_addr"
-    backup_enable=$($didata backup enable --serverFilterIpv6 $ipv6_addr --servicePlan Enterprise)
+    backup_enable=$($didata backup enable --serverFilterIpv6 $ipv6_addr --servicePlan $serviceplan)
     already_enabled_string="Cloud backup for this server is already enabled or being enabled" 
     if [[ $backup_enable == *$already_enabled_string* ]]; then
         echo "Backups are already enabled for $serverid"
@@ -303,7 +307,11 @@ check_variables(){
         exit 1
     fi
     if [ -z "$password" ]; then
-        echo "Need to specify a -p|--password variable (Dimension Data Account Password"
+        echo "Need to specify a -p|--password variable (Dimension Data Account Password)"
+        exit 1
+    fi
+    if [ -z "$serviceplan" ]; then
+      echo "Need to specify a -l|--serviceplan variable (i.e. Enterprise)"
         exit 1
     fi
     export DIDATA_USER=$username
