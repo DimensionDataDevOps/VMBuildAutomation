@@ -14,7 +14,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-while [[ $# > 1 ]]
+backups_help(){
+cat <<-END
+dd_nimsoft.sh - Install or Uninstall nimsoft from a host
+
+Usage:
+------
+    -h | --help
+      Display this help file
+    -c | --clienttype <clienttype>
+      Which client type to use (i.e. "FA.Linux")
+    -s | --storagepolicy <policy>
+      The storage policy to use (i.e. "14 Day Storage Policy")
+    -e | --schedulepolicy <policy>
+      The schedule policy to use (i.e. "12AM - 6AM")
+    -l | --serviceplan <serviceplan>
+      The backups service plan to use (i.e "Enterprise")
+    -u | --username <user>
+      Cloud UI username
+    -p | --password <pass>
+      Cloud UI password
+    -n | --notify
+      Email address for notification when backups go bad (i.e. test@example.com)
+
+Example:
+-------
+dd_automated_backup_install.sh -c FA.Linux -s "14 Day Storage Policy" -e "12AM - 6AM" -n jeff.dunham@itaas.dimensiondata.com -l Enterprise -u dduser -p pass
+END
+exit 1
+}
+
+while [[ $# > 0 ]]
 do
 key="$1"
 case $key in
@@ -48,6 +78,9 @@ case $key in
     ;;
     --installonly)
     installonly=True
+    ;;
+    -h|--help)
+    backups_help
     ;;
     *)
             # unknown option
