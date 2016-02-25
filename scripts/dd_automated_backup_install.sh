@@ -190,16 +190,29 @@ get_download_url(){
 
 enable_backups(){
     ipv6_addr=$(ip -6 addr | grep global | awk {'print $2'} | cut -d\/ -f1)
+    already_enabled_string="Cloud backup for this server is already enabled or being enabled"
     echo "IPv6 Address $ipv6_addr"
-    backup_enable=$($didata backup enable --serverFilterIpv6 $ipv6_addr --servicePlan $serviceplan)
-    already_enabled_string="Cloud backup for this server is already enabled or being enabled" 
-    if [[ $backup_enable == *$already_enabled_string* ]]; then
-        echo "Backups are already enabled for $serverid"
-    else
-        echo "$backup_enable"
+    COUNTER=0
+    while [  $COUNTER -lt 10 ]; do
+        backup_enable=$($didata backup enable --serverFilterIpv6 $ipv6_addr --servicePlan $serviceplan)
+        rc=$?
+        if [[ $rc != 0 ]]; then
+            if [[ $backup_enable == *$already_enabled_string* ]]; then
+                echo "Backups are already enabled for $serverid"
+                return 0
+            fi
+            echo "Unable to start backups $backup_enable.  Retrying in 30 seconds..."
+            sleep 30
+            let COUNTER=COUNTER+1
+        else
+            echo "Backups enabled for server.  Sleeping 30 seconds after enabling..."
+            return 0
+        fi
+    done
+    if [[ $rc != 0 ]]; then
+        echo "Attempted to find download_url $COUNTER times with no success."
+        exit 1
     fi
-    echo "Waiting 30 seconds after enabling backups..."
-    sleep 30
     add_backup_client
 }
 
