@@ -213,7 +213,6 @@ enable_backups(){
         echo "Attempted to find download_url $COUNTER times with no success."
         exit 1
     fi
-    add_backup_client
 }
 
 install_client(){
@@ -377,6 +376,7 @@ if [ ! -e $didata ]; then
     exit 1
 fi
 enable_backups
+add_backup_client
 install_client
 do_full_backup
 check_backup
