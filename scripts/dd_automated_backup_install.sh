@@ -150,7 +150,7 @@ add_backup_client(){
     COUNTER=0
     currently_enabling="Backup is currently being enabled for Server"
     while [  $COUNTER -lt 10 ]; do
-        output=$(didata backup add_client --serverFilterIpv6 $ipv6_addr --notifyEmail "$notify" --clientType "$clienttype" --storagePolicy "$storagepol" --schedulePolicy "$schedulepol")
+        output=$(didata backup add_client --serverFilterIpv6 $ipv6_addr --triggerOn ON_FAILURE --notifyEmail "$notify" --clientType "$clienttype" --storagePolicy "$storagepol" --schedulePolicy "$schedulepol")
         rc=$?
         if [[ $rc != 0 ]]; then
             if [[ $output == *$currently_enabling* ]]; then
