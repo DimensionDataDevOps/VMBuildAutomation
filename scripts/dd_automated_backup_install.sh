@@ -156,6 +156,7 @@ add_backup_client(){
             if [[ $output == *$currently_enabling* ]]; then
                echo "Backups are still enabling, retrying adding client in 30 seconds..."
             fi
+            echo "Something went wrong output $output ... retrying in 30 seconds..."
             sleep 30
             let COUNTER=COUNTER+1
         else
