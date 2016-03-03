@@ -153,7 +153,7 @@ add_backup_client(){
         output=$(didata backup add_client --serverFilterIpv6 $ipv6_addr --notifyEmail "$notify" --clientType "$clienttype" --storagePolicy "$storagepol" --schedulePolicy "$schedulepol")
         rc=$?
         if [[ $rc != 0 ]]; then
-            if [[$output == *$currently_enabling* ]]; then
+            if [[ $output == *$currently_enabling* ]]; then
                echo "Backups are still enabling, retrying adding client in 30 seconds..."
             fi
             sleep 30
@@ -223,7 +223,7 @@ install_client(){
         cd /tmp
         mkdir Backup-Client
         cd /tmp/Backup-Client
-        curl -sL "$download_url" -o backup-client.zip
+        curl -L "$download_url" -o backup-client.zip
         unzip ./backup-client.zip
         bash ./install.sh
         echo "Sleeping for 30 seconds after installation of the client"
