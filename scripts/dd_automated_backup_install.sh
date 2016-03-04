@@ -219,14 +219,14 @@ enable_backups(){
 
 install_client(){
     date
-    if [[ ! -e '/opt/simpana/RestoreApp/restoreClient.pl' ]]; then
+    if [[ ! -e '/usr/bin/simpana' ]]; then
         echo "Installing backup client"
         get_download_url
         cd /tmp
         mkdir Backup-Client
         cd /tmp/Backup-Client
         curl -L "$download_url" -o backup-client.zip
-        unzip ./backup-client.zip
+        unzip -o ./backup-client.zip
         bash ./install.sh
         echo "Sleeping for 30 seconds after installation of the client"
         sleep 30
