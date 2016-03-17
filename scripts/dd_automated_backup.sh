@@ -388,9 +388,18 @@ check_variables(){
     fi
 }
 
+uninstall_backups(){
+    if [[ -e '/usr/bin/simpana' ]]; then
+        echo "Need to uninstall"
+    else
+        echo "Simpana does not exists on host, no need to uninstall"
+    fi
+}
+
 check_variables
 
 if [ "$install" = true  ]; then
+    echo "Installing backups"
     fn_distro
     get_didata_script
     if [ -z $didata ]; then
@@ -408,7 +417,8 @@ if [ "$install" = true  ]; then
     do_full_backup
     check_backup
 elif [ "$uninstall" = true ]; then
-    echo "We should uninstall here"
+    echo "Uninstalling backups"
+    uninstall_backups
 else
     echo "We should never GET HERE"
     exit 1
