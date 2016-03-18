@@ -22,6 +22,10 @@ Usage:
 ------
     -h | --help
       Display this help file
+    -i | --install
+       Install client
+    -u | --uninstall
+       Uninstall client
     -c | --clienttype <clienttype>
       Which client type to use (i.e. "FA.Linux")
     -s | --storagepolicy <policy>
@@ -39,7 +43,11 @@ Usage:
 
 Example:
 -------
-dd_automated_backup_install.sh -c FA.Linux -s "14 Day Storage Policy" -e "12AM - 6AM" -n jeff.dunham@itaas.dimensiondata.com -l Enterprise -u dduser -p pass
+Installation:
+dd_automated_backup.sh --install -c FA.Linux -s "14 Day Storage Policy" -e "12AM - 6AM" -n jeff.dunham@itaas.dimensiondata.com -l Enterprise -u dduser -p pass
+
+Uninstallation:
+dd_automated_backup.sh --uninstall
 END
 exit 1
 }
@@ -48,6 +56,12 @@ while [[ $# > 0 ]]
 do
 key="$1"
 case $key in
+    -i|--install)
+    install=true
+    ;;
+    --uninstall)
+    uninstall=true
+    ;;
     -c|--clienttype)
     clienttype="$2"
     shift # past argument
@@ -333,52 +347,79 @@ spinner(){
 }
 
 check_variables(){
-    if [ -z $clienttype ]; then
-        echo "Need to specify a -c|--clienttype variable (i.e FA.Linux)"
+    if [ "$install" = true ] && [ "$uninstall" = true ]; then
+        echo "You can't uninstall and install, please pick one!"
+        exit 1
+    elif [ ! "$install" = true ] && [ ! "$uninstall" =  true ]; then
+        echo "You have to choose either install (--install) or uninstall (--uninstall)"
         exit 1
     fi
-    if [ -z "$storagepol" ]; then
-        echo "Need to specify a -s|--storagepol variable (i.e \"14 Days\")"
-        exit 1
+    if [ "$install" = true ]; then
+        if [ -z $clienttype ]; then
+            echo "Need to specify a -c|--clienttype variable (i.e FA.Linux)"
+            exit 1
+        fi
+        if [ -z "$storagepol" ]; then
+            echo "Need to specify a -s|--storagepol variable (i.e \"14 Days\")"
+            exit 1
+        fi
+        if [ -z "$schedulepol" ]; then
+            echo "Need to specify a -e|--schedulepol variable (i.e \"12AM - 6AM\")"
+            exit 1
+        fi
+        if [ -z "$notify" ]; then
+            echo "Need to specify a -n|--notify variable (Email Address)"
+            exit 1
+        fi
+        if [ -z "$username" ]; then
+            echo "Need to specify a -u|--username variable (Dimension Data Account Username)"
+            exit 1
+        fi
+        if [ -z "$password" ]; then
+            echo "Need to specify a -p|--password variable (Dimension Data Account Password)"
+            exit 1
+        fi
+        if [ -z "$serviceplan" ]; then
+            echo "Need to specify a -l|--serviceplan variable (i.e. Enterprise)"
+            exit 1
+        fi
+        export DIDATA_USER=$username
+        export DIDATA_PASSWORD=$password
     fi
-    if [ -z "$schedulepol" ]; then
-        echo "Need to specify a -e|--schedulepol variable (i.e \"12AM - 6AM\")"
-        exit 1
+}
+
+uninstall_backups(){
+    if [[ -e '/usr/bin/simpana' ]]; then
+        /opt/simpana/simpana/installer/cvpkgrm -silent
+    else
+        echo "Simpana does not exists on host, no need to uninstall"
     fi
-    if [ -z "$notify" ]; then
-        echo "Need to specify a -n|--notify variable (Email Address)"
-        exit 1
-    fi
-    if [ -z "$username" ]; then
-        echo "Need to specify a -u|--username variable (Dimension Data Account Username)"
-        exit 1
-    fi
-    if [ -z "$password" ]; then
-        echo "Need to specify a -p|--password variable (Dimension Data Account Password)"
-        exit 1
-    fi
-    if [ -z "$serviceplan" ]; then
-      echo "Need to specify a -l|--serviceplan variable (i.e. Enterprise)"
-        exit 1
-    fi
-    export DIDATA_USER=$username
-    export DIDATA_PASSWORD=$password
 }
 
 check_variables
-fn_distro
-get_didata_script
-if [ -z $didata ]; then
-    echo "DiData not installed, installing all dependencies"
-    install_dependencies
-fi
-get_didata_script
-if [ ! -e $didata ]; then
-    echo "didata still not installed something has gone wrong"
+
+if [ "$install" = true  ]; then
+    echo "Installing backups"
+    fn_distro
+    get_didata_script
+    if [ -z $didata ]; then
+        echo "DiData not installed, installing all dependencies"
+        install_dependencies
+    fi
+    get_didata_script
+    if [ ! -e $didata ]; then
+        echo "didata still not installed something has gone wrong"
+        exit 1
+    fi
+    enable_backups
+    add_backup_client
+    install_client
+    do_full_backup
+    check_backup
+elif [ "$uninstall" = true ]; then
+    echo "Uninstalling backups"
+    uninstall_backups
+else
+    echo "We should never GET HERE"
     exit 1
 fi
-enable_backups
-add_backup_client
-install_client
-do_full_backup
-check_backup
