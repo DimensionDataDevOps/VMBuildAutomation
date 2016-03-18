@@ -390,7 +390,7 @@ check_variables(){
 
 uninstall_backups(){
     if [[ -e '/usr/bin/simpana' ]]; then
-        echo "Need to uninstall"
+        /opt/simpana/simpana/installer/cvpkgrm -silent
     else
         echo "Simpana does not exists on host, no need to uninstall"
     fi
