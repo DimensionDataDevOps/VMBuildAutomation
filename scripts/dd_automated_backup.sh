@@ -13,10 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+ 
+WGET=`which wget`
+CURL=`which curl`
+ 
 backups_help(){
 cat <<-END
-dd_nimsoft.sh - Install or Uninstall nimsoft from a host
+dd_automated_backup.sh - Install or Uninstall Backups from a Host
 
 Usage:
 ------
@@ -40,18 +43,20 @@ Usage:
       Cloud UI password
     -n | --notify
       Email address for notification when backups go bad (i.e. test@example.com)
+    -f | --fullbackupnow
+      Do a full backup right after installation
 
 Example:
 -------
 Installation:
 dd_automated_backup.sh --install -c FA.Linux -s "14 Day Storage Policy" -e "12AM - 6AM" -n jeff.dunham@itaas.dimensiondata.com -l Enterprise -u dduser -p pass
-
+ 
 Uninstallation:
 dd_automated_backup.sh --uninstall
 END
 exit 1
 }
-
+ 
 while [[ $# > 0 ]]
 do
 key="$1"
@@ -90,8 +95,8 @@ case $key in
     notify="$2"
     shift # past argument
     ;;
-    --installonly)
-    installonly=True
+    -f|--fullbackupnow)
+    fullbackupnow=true
     ;;
     -h|--help)
     backups_help
@@ -134,7 +139,14 @@ apt_install_dependencies(){
 
 install_pip(){
     echo "Installing pip"
-    curl -sL https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+     if [ "$CURL" != "" ] && [ -x $CURL ]; then
+           curl -skL https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+     elif [ "$WGET" != "" ] && [ -x $WGET ]; then
+           wget https://bootstrap.pypa.io/get-pip.py -O get-pip.py
+     else
+           echo "curl, nor wget, are available on this host.  Unable to fetch https://bootstrap.pypa.io/get-pip.py"
+           exit 1
+     fi
     python ./get-pip.py
 }
 
@@ -203,7 +215,7 @@ get_download_url(){
         exit 1
     fi
 }
-
+ 
 enable_backups(){
     ipv6_addr=$(ip -6 addr | grep global | awk {'print $2'} | cut -d\/ -f1)
     already_enabled_string="Cloud backup for this server is already enabled or being enabled"
@@ -235,15 +247,25 @@ install_client(){
     date
     if [[ ! -e '/usr/bin/simpana' ]]; then
         echo "Installing backup client"
+        mount -o remount,exec /tmp
         get_download_url
         cd /tmp
         mkdir Backup-Client
         cd /tmp/Backup-Client
-        curl -L "$download_url" -o backup-client.zip
+        if [ "$CURL" != "" ] && [ -x $CURL ]; then
+            curl -kL "$download_url" -o backup-client.zip
+       elif [ "$WGET" != "" ] && [ -x $WGET ]; then
+            wget "$download_url" -O backup-client.zip
+       else
+            echo "curl, nor wget, are available on this host.  Unable to fetch $download_url"
+            exit 1
+       fi
+
         unzip -o ./backup-client.zip
         bash ./install.sh
         echo "Sleeping for 30 seconds after installation of the client"
         sleep 30
+        mount -o remount,noexec /tmp
     else
         echo "Backup client already installed, skipping..."
     fi
@@ -298,7 +320,6 @@ check_backup(){
         fi
     done
     if [[ $BACKUP_FINISHED != true ]]; then
-
         exit 1
     fi
 
@@ -390,7 +411,9 @@ check_variables(){
 
 uninstall_backups(){
     if [[ -e '/usr/bin/simpana' ]]; then
+        mount -o remount,exec /tmp
         /opt/simpana/simpana/installer/cvpkgrm -silent
+        mount -o remount,noexec /tmp
     else
         echo "Simpana does not exists on host, no need to uninstall"
     fi
@@ -414,8 +437,10 @@ if [ "$install" = true  ]; then
     enable_backups
     add_backup_client
     install_client
-    do_full_backup
-    check_backup
+    if [ "$fullbackupnow" = true  ]; then
+        do_full_backup
+        check_backup
+    fi
 elif [ "$uninstall" = true ]; then
     echo "Uninstalling backups"
     uninstall_backups
